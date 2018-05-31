@@ -13,6 +13,7 @@ import random
 import win32api #用于模拟键盘F3按下，用于snipaste，可删
 import win32con #同上
 from lxml import etree
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 class Spider():
     #初始化
@@ -22,7 +23,14 @@ class Spider():
         # }
         #filePath是自定义的，本次程序运行后创建的文件夹路径，存放各种需要下载的对象。
         self.filePath = ('/糗事百科/'+ '文字' + '/')
+        #
         self.filePath_txt = (self.filePath + 'qiushi' + '.txt' )
+        #Snipaste.exe所在路径，若无可忽略
+        self.snipastePath = 'E:\snipaste\Snipaste.exe'
+        #每隔?分钟，运行一次main_fuction
+        self.intervalMin = 1
+        #
+        self.jokesNum = 3
 
     def init_filePath(self):
         #新建本地的文件夹路径，用于存储网页、图片、文字等数据！
@@ -87,17 +95,22 @@ class Spider():
             self.download_text(qiushi_tag_id)
             count += 1
             #只存3个
-            if count == 3:
+            if count == self.jokesNum:
                 break
 
-        if not os.path.exists('E:\snipaste\Snipaste.exe'):#启动记事本
+        if not os.path.exists(self.snipastePath):#启动记事本
             os.system(('start notepad {}').format(self.filePath_txt))
         else:#启动 Snipaste.exe 的F3贴图功能
-            os.system('start ' + 'E:\snipaste\Snipaste.exe')
+            os.system('start ' + self.snipastePath)
             time.sleep(2)
             os.system(('clip < {}').format(self.filePath_txt))
             win32api.keybd_event(0x72,0,0,0)     
             win32api.keybd_event(0x72,0,win32con.KEYEVENTF_KEYUP,0) 
 
-spider = Spider()
-spider.main_fuction()
+if __name__ == '__main__':
+    spider = Spider()
+    # spider.main_fuction()
+    
+    scheduler = BlockingScheduler()
+    scheduler.add_job(spider.main_fuction, 'interval', minutes=spider.intervalMin)
+    scheduler.start()
