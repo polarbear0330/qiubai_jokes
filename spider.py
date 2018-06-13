@@ -28,7 +28,7 @@ class Spider():
         #Snipaste.exe所在路径，若无可忽略
         self.snipastePath = 'E:\snipaste\Snipaste.exe'
         #每隔?分钟，运行一次main_fuction
-        self.intervalMin = 1
+        self.intervalMin = 30
         #
         self.jokesNum = 3
 
@@ -109,7 +109,7 @@ class Spider():
 
 if __name__ == '__main__':
     spider = Spider()
-    # spider.main_fuction()
+    spider.main_fuction()
     
     scheduler = BlockingScheduler()
     scheduler.add_job(spider.main_fuction, 'interval', minutes=spider.intervalMin)
