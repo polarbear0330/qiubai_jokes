@@ -1,12 +1,13 @@
 """
-- 爬取内容：文字笑话
+- 爬取内容：文字笑话*3
 - 来源：糗事百科
-- 显示方式：屏幕贴图
+- 显示方式：屏幕贴图 或 记事本
 - 关闭显示：双击可关闭贴图（结合snipaste）
 - 时间间隔：默认半小时一次，可设置
 """
 
 import os
+import sys
 import requests
 import time
 import random
@@ -29,7 +30,11 @@ class Spider():
         self.snipastePath = 'E:\snipaste\Snipaste.exe'
         #每隔?分钟，运行一次main_fuction
         self.intervalMin = 30
-        #
+        if(len(sys.argv) > 1):
+            intervalMin = int(sys.argv[1])
+            if intervalMin > 0:
+                self.intervalMin = intervalMin
+        #每次jokes数量
         self.jokesNum = 3
 
     def init_filePath(self):
@@ -86,8 +91,24 @@ class Spider():
             print("save file")
             print(repr(e))
 
+    def start_snipaste_ifExist(self):
+        #若有snipaste且未启动，则启动
+        if os.path.exists(self.snipastePath) and \
+        os.popen('tasklist|findstr Snipaste.exe').read().count('Snipaste.exe') == 0:
+            os.system('start ' + self.snipastePath)
+
+    def display_jokes(self):
+        #展示
+        if(os.popen('tasklist|findstr Snipaste.exe').read().count('Snipaste.exe') >= 1):#启动Snipaste的F3贴图功能
+            os.system(('clip < {}').format(self.filePath_txt))
+            win32api.keybd_event(0x72,0,0,0)     
+            win32api.keybd_event(0x72,0,win32con.KEYEVENTF_KEYUP,0) 
+        else:#启动记事本
+            os.system(('start notepad {}').format(self.filePath_txt))
+
     def main_fuction(self):
-        #获取糗百文字段子
+        #获取糗百文字段子 并 展示
+        self.start_snipaste_ifExist()
         self.init_filePath()
         qiushi_tag_ids = self.getIds()
         count = 0
@@ -97,20 +118,15 @@ class Spider():
             #只存3个
             if count == self.jokesNum:
                 break
+        self.display_jokes()
 
-        if not os.path.exists(self.snipastePath):#启动记事本
-            os.system(('start notepad {}').format(self.filePath_txt))
-        else:#启动 Snipaste.exe 的F3贴图功能
-            os.system('start ' + self.snipastePath)
-            time.sleep(2)
-            os.system(('clip < {}').format(self.filePath_txt))
-            win32api.keybd_event(0x72,0,0,0)     
-            win32api.keybd_event(0x72,0,win32con.KEYEVENTF_KEYUP,0) 
 
 if __name__ == '__main__':
+
     spider = Spider()
     spider.main_fuction()
     
     scheduler = BlockingScheduler()
+    print(spider.intervalMin)
     scheduler.add_job(spider.main_fuction, 'interval', minutes=spider.intervalMin)
     scheduler.start()
