@@ -109,6 +109,7 @@ class Spider():
     def main_fuction(self):
         #获取糗百文字段子 并 展示
         self.start_snipaste_ifExist()
+        time.sleep(10)
         self.init_filePath()
         qiushi_tag_ids = self.getIds()
         count = 0
@@ -127,6 +128,6 @@ if __name__ == '__main__':
     spider.main_fuction()
     
     scheduler = BlockingScheduler()
-    print(spider.intervalMin)
+    print('\nHey! \n\nJokes appear every %s minutes.\n\n (Also run me like "spider.py 20". The "20" is interval minutes decided by you)' % spider.intervalMin)
     scheduler.add_job(spider.main_fuction, 'interval', minutes=spider.intervalMin)
     scheduler.start()
